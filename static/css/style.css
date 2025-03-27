@@ -1,0 +1,227 @@
+/* Modern color palette and variables */
+:root {
+    --primary-bg: #1e1e1e;
+    --secondary-bg: #2d2d2d;
+    --white-square: #eeeed2;
+    --black-square: #769656;
+    --text-primary: #ffffff;
+    --text-secondary: #b8b8b8;
+    --accent-color: #5c8374;
+    --border-radius: 10px;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background-color: var(--primary-bg);
+    color: var(--text-primary);
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    gap: 30px;
+}
+
+/* Game Info Panel */
+.game-info {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 250px;
+    background-color: var(--secondary-bg);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+}
+
+#current-turn {
+    font-size: 1.4em;
+    font-weight: 600;
+    padding: 10px;
+    background-color: var(--accent-color);
+    border-radius: var(--border-radius);
+    text-align: center;
+}
+
+#game-status {
+    color: #e74c3c;
+    font-weight: 600;
+    text-align: center;
+    min-height: 24px;
+}
+
+/* Chessboard */
+#chessboard {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    width: 640px;
+    height: 640px;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    border: 4px solid var(--secondary-bg);
+}
+
+.square {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.white {
+    background-color: var(--white-square);
+}
+
+.black {
+    background-color: var(--black-square);
+}
+
+/* Highlight effects */
+.square:hover {
+    opacity: 0.9;
+}
+
+.piece {
+    width: 70px;
+    height: 70px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 50px;
+    transition: transform 0.2s;
+}
+
+.piece:hover {
+    transform: scale(1.1);
+}
+
+.piece[class*='w'] {
+    color: white;
+    text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.4);
+}
+
+.piece[class*='b'] {
+    color: #2d2d2d;
+    text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+/* Move History Panel */
+.move-history {
+    width: 250px;
+    height: 640px;
+    background-color: var(--secondary-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+}
+
+.move-history h3 {
+    margin: 0;
+    padding: 15px;
+    background-color: var(--accent-color);
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+    text-align: center;
+}
+
+#moves {
+    flex-grow: 1;
+    padding: 15px;
+    overflow-y: auto;
+    font-family: 'Consolas', monospace;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* Scrollbar styling */
+#moves::-webkit-scrollbar {
+    width: 8px;
+}
+
+#moves::-webkit-scrollbar-track {
+    background: var(--primary-bg);
+    border-radius: 4px;
+}
+
+#moves::-webkit-scrollbar-thumb {
+    background: var(--accent-color);
+    border-radius: 4px;
+}
+
+/* Chess pieces */
+.wP::before { content: '♙'; }
+.wR::before { content: '♖'; }
+.wN::before { content: '♘'; }
+.wB::before { content: '♗'; }
+.wQ::before { content: '♕'; }
+.wK::before { content: '♔'; }
+.bP::before { content: '♟'; }
+.bR::before { content: '♜'; }
+.bN::before { content: '♞'; }
+.bB::before { content: '♝'; }
+.bQ::before { content: '♛'; }
+.bK::before { content: '♚'; }
+
+/* Selected piece highlight */
+.piece.selected {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+}
+
+/* Valid move indicators */
+.square.valid-move::before {
+    content: '';
+    width: 20px;
+    height: 20px;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    position: absolute;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+    .container {
+        flex-direction: column;
+    }
+    
+    .game-info, .move-history {
+        width: 640px;
+        height: auto;
+    }
+    
+    .move-history {
+        height: 200px;
+    }
+}
+
+@media (max-width: 700px) {
+    #chessboard {
+        width: 320px;
+        height: 320px;
+    }
+    
+    .square {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .piece {
+        width: 35px;
+        height: 35px;
+        font-size: 25px;
+    }
+    
+    .game-info, .move-history {
+        width: 320px;
+    }
+} 

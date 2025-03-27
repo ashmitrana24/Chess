@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Game</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="game-info">
+            <div id="current-turn">White's Turn</div>
+            <div id="game-status"></div>
+        </div>
+        <div id="chessboard"></div>
+        <div class="move-history">
+            <h3>Move History</h3>
+            <div id="moves"></div>
+        </div>
+    </div>
+
+    <script>
+        let selectedPiece = null;
+        let board = null;
+        let currentTurn = 'w';
+        let moveHistory = [];
+
+        // Initialize the board
+        function initializeBoard() {
+            fetch('/get_board')
+                .then(response => response.json())
+                .then(data => {
+                    board = data.board;
+                    currentTurn = data.current_turn;
+                    updateGameStatus(data);
+                    displayBoard();
+                });
+        }
+
+        function updateGameStatus(data) {
+            const turnDisplay = document.getElementById('current-turn');
+            const statusDisplay = document.getElementById('game-status');
+            
+            turnDisplay.textContent = `Current Turn: ${data.current_turn === 'w' ? 'White' : 'Black'}`;
+            
+            if (data.checkmate) {
+                statusDisplay.textContent = `Checkmate! ${data.current_turn === 'w' ? 'Black' : 'White'} wins!`;
+            } else if (data.in_check) {
+                statusDisplay.textContent = `${data.current_turn === 'w' ? 'White' : 'Black'} is in check!`;
+            } else {
+                statusDisplay.textContent = '';
+            }
+        }
+
+        function addMoveToHistory(from, to) {
+            const movesDiv = document.getElementById('moves');
+            const piece = board[from[0]][from[1]];
+            const moveNumber = Math.floor(moveHistory.length / 2) + 1;
+            const moveText = `${moveNumber}. ${piece} ${String.fromCharCode(97 + from[1])}${8 - from[0]} → ${String.fromCharCode(97 + to[1])}${8 - to[0]}`;
+            
+            moveHistory.push(moveText);
+            movesDiv.innerHTML = moveHistory.join('<br>');
+            movesDiv.scrollTop = movesDiv.scrollHeight;
+        }
+
+        // Display the board
+        function displayBoard() {
+            const chessboard = document.getElementById('chessboard');
+            chessboard.innerHTML = '';
+
+            for (let i = 0; i < 8; i++) {
+                for (let j = 0; j < 8; j++) {
+                    const square = document.createElement('div');
+                    square.className = `square ${(i + j) % 2 === 0 ? 'white' : 'black'}`;
+                    square.setAttribute('data-position', `${i},${j}`);
+                    square.addEventListener('click', handleSquareClick);
+                    
+                    if (board[i][j] !== '--') {
+                        const piece = document.createElement('div');
+                        piece.className = 'piece ' + board[i][j];
+                        piece.setAttribute('data-position', `${i},${j}`);
+                        piece.addEventListener('click', handlePieceClick);
+                        square.appendChild(piece);
+                    }
+                    
+                    chessboard.appendChild(square);
+                }
+            }
+        }
+
+        // Handle piece selection
+        function handlePieceClick(event) {
+            event.stopPropagation();
+            const position = event.target.getAttribute('data-position').split(',');
+            const piece = board[parseInt(position[0])][parseInt(position[1])];
+            
+            // If clicking an opponent's piece while having a piece selected, treat it as a capture attempt
+            if (selectedPiece && piece[0] !== currentTurn) {
+                handleSquareClick(event);
+                return;
+            }
+            
+            // Only allow selecting own pieces
+            if (piece[0] === currentTurn) {
+                selectedPiece = {
+                    position: [parseInt(position[0]), parseInt(position[1])],
+                    element: event.target
+                };
+            }
+        }
+
+        // Handle square selection for move
+        function handleSquareClick(event) {
+            if (!selectedPiece) return;
+
+            let position;
+            if (event.target.classList.contains('piece')) {
+                position = event.target.getAttribute('data-position').split(',');
+            } else {
+                position = event.target.getAttribute('data-position').split(',');
+            }
+            
+            const toPosition = [parseInt(position[0]), parseInt(position[1])];
+
+            // Don't allow moving to a square with our own piece
+            const targetPiece = board[toPosition[0]][toPosition[1]];
+            if (targetPiece !== '--' && targetPiece[0] === currentTurn) {
+                return;
+            }
+
+            fetch('/move_piece', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    from: selectedPiece.position,
+                    to: toPosition
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    board = data.board;
+                    currentTurn = data.current_turn;
+                    updateGameStatus(data);
+                    addMoveToHistory(selectedPiece.position, toPosition);
+                    displayBoard();
+                } else {
+                    alert(data.message);
+                }
+                selectedPiece = null;
+            });
+        }
+
+        // Initialize the game
+        initializeBoard();
+    </script>
+</body>
+</html> 
